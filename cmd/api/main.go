@@ -4,6 +4,7 @@ import (
 	"log"
 	"social/internal/api"
 	"social/internal/api/handlers"
+	"social/internal/api/middleware"
 	"social/internal/domain/auth"
 	"social/internal/domain/user"
 	"social/internal/infra/config"
@@ -28,14 +29,20 @@ func main() {
 
 	// Services
 	userSvc := user.NewUserService(userRepo)
+	// testSecret := "testscret"
+	// log.Println("testSecret:", testSecret)
+
 	authSvc := auth.NewAuthService(authRepo, userRepo, []byte(cfg.JWT.Secret), cfg.JWT.Expiration)
 
 	// Handlers
 	userHandler := handlers.NewUserHandler(userSvc)
 	authHandler := handlers.NewAuthHandler(authSvc)
 
+	// Middleware
+	authMiddleware := middleware.NewAuthMiddleware([]byte(cfg.JWT.Secret))
+
 	// Server
-	app := api.NewServer(cfg.Server, userHandler, authHandler)
+	app := api.NewServer(cfg.Server, authMiddleware, userHandler, authHandler)
 	mux := app.Mount()
 	if err := app.Run(mux); err != nil {
 		log.Fatal(err)

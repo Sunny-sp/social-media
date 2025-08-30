@@ -1,6 +1,7 @@
 # Binaries
 /bin/
 /temp/
+/tmp/
 /*.exe
 /*.out
 

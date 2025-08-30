@@ -32,7 +32,7 @@ func (h *UserHandler) GetByUserId(w http.ResponseWriter, r *http.Request) {
 	user, err := h.userService.GetUserByUserId(r.Context(), id)
 
 	if err != nil {
-		utils.ResponseError(w, http.StatusInternalServerError, "Internal server error")
+		utils.ResponseError(w, http.StatusInternalServerError)
 		return
 	}
 

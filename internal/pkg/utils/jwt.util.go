@@ -6,6 +6,12 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type Claims struct {
+	UserID int64  `json:"user_id"`
+	Email  string `json:"email"`
+	jwt.RegisteredClaims
+}
+
 func GenrateJWT(userId int64, email string, jwtSecret []byte, jwtExpiry int) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userId,
@@ -17,4 +23,22 @@ func GenrateJWT(userId int64, email string, jwtSecret []byte, jwtExpiry int) (st
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString(jwtSecret)
+}
+
+func ValidateJWT(token string, jwtSecret []byte) (*Claims, error) {
+	claims := &Claims{}
+
+	t, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !t.Valid {
+		return nil, jwt.ErrSignatureInvalid
+	}
+
+	return claims, nil
 }
