@@ -11,7 +11,6 @@ type UserResponse struct {
 	Email     string    `json:"email"`
 	Mobile    string    `json:"mobile"`
 	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func ToUserResponse(u *user.User) *UserResponse {
@@ -21,6 +20,5 @@ func ToUserResponse(u *user.User) *UserResponse {
 		Email:     u.Email,
 		Mobile:    u.Mobile,
 		CreatedAt: u.CreatedAt,
-		UpdatedAt: u.UpdatedAt,
 	}
 }

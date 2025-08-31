@@ -2,12 +2,15 @@ package main
 
 import (
 	"log"
-	"social/internal/api"
-	"social/internal/api/handlers"
+	"social/internal/api/auth_api"
 	"social/internal/api/middleware"
+	"social/internal/api/post_api"
+	"social/internal/api/server"
+	"social/internal/api/user_api"
+	"social/internal/config"
 	"social/internal/domain/auth"
+	"social/internal/domain/post"
 	"social/internal/domain/user"
-	"social/internal/infra/config"
 	"social/internal/infra/db"
 	"social/internal/infra/repository"
 )
@@ -26,6 +29,7 @@ func main() {
 	// Repositories
 	userRepo := repository.NewUserRepo(pool)
 	authRepo := repository.NewAuthRepo(pool)
+	postReo := repository.NewPostRepo(pool)
 
 	// Services
 	userSvc := user.NewUserService(userRepo)
@@ -33,16 +37,18 @@ func main() {
 	// log.Println("testSecret:", testSecret)
 
 	authSvc := auth.NewAuthService(authRepo, userRepo, []byte(cfg.JWT.Secret), cfg.JWT.Expiration)
+	postSrv := post.NewPostService(postReo)
 
-	// Handlers
-	userHandler := handlers.NewUserHandler(userSvc)
-	authHandler := handlers.NewAuthHandler(authSvc)
+	// Handler
+	userHandler := user_api.NewUserHandler(userSvc)
+	authHandler := auth_api.NewAuthHandler(authSvc)
+	postHandler := post_api.NewPosthandler(postSrv)
 
 	// Middleware
 	authMiddleware := middleware.NewAuthMiddleware([]byte(cfg.JWT.Secret))
 
 	// Server
-	app := api.NewServer(cfg.Server, authMiddleware, userHandler, authHandler)
+	app := server.NewServer(cfg.Server, authMiddleware, userHandler, authHandler, postHandler)
 	mux := app.Mount()
 	if err := app.Run(mux); err != nil {
 		log.Fatal(err)

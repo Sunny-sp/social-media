@@ -1,12 +1,10 @@
-package routes
+package auth_api
 
 import (
-	"social/internal/api/handlers"
-
 	"github.com/go-chi/chi/v5"
 )
 
-func AuthRoutes(r chi.Router, authHandler *handlers.AuthHandler) {
+func AuthRoutes(r chi.Router, authHandler *AuthHandler) {
 	r.Route("/auth", func(r chi.Router) {
 		r.Post("/login", authHandler.Login)
 	})

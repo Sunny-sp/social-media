@@ -1,11 +1,12 @@
-package api
+package server
 
 import (
 	"net/http"
-	"social/internal/api/handlers"
+	"social/internal/api/auth_api"
 	mw "social/internal/api/middleware"
-	"social/internal/api/routes"
-	"social/internal/infra/config"
+	"social/internal/api/post_api"
+	"social/internal/api/user_api"
+	"social/internal/config"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -15,21 +16,24 @@ import (
 type Server struct {
 	config         config.ServerConfig
 	authMiddleware *mw.AuthMiddleware
-	userHandler    *handlers.UserHandler
-	authHandler    *handlers.AuthHandler
+	userHandler    *user_api.UserHandler
+	authHandler    *auth_api.AuthHandler
+	postHandler    *post_api.PostHandler
 }
 
 func NewServer(
 	cfg config.ServerConfig,
 	authMiddleware *mw.AuthMiddleware,
-	userHandler *handlers.UserHandler,
-	authHandler *handlers.AuthHandler,
+	userHandler *user_api.UserHandler,
+	authHandler *auth_api.AuthHandler,
+	postHandler *post_api.PostHandler,
 ) *Server {
 	return &Server{
 		config:         cfg,
 		authMiddleware: authMiddleware,
 		userHandler:    userHandler,
 		authHandler:    authHandler,
+		postHandler:    postHandler,
 	}
 }
 
@@ -42,8 +46,9 @@ func (s *Server) Mount() http.Handler {
 	r.Use(chimiddleware.Timeout(60 * time.Second))
 
 	r.Route("/v1", func(r chi.Router) {
-		routes.UserRoutes(r, s.userHandler, s.authMiddleware)
-		routes.AuthRoutes(r, s.authHandler)
+		user_api.UserRoutes(r, s.userHandler, s.authMiddleware)
+		auth_api.AuthRoutes(r, s.authHandler)
+		post_api.PostRoutes(r, s.postHandler, s.authMiddleware)
 	})
 
 	return r

@@ -1,13 +1,12 @@
-package routes
+package user_api
 
 import (
-	"social/internal/api/handlers"
 	"social/internal/api/middleware"
 
 	"github.com/go-chi/chi/v5"
 )
 
-func UserRoutes(r chi.Router, userHandler *handlers.UserHandler, authMiddelware *middleware.AuthMiddleware) {
+func UserRoutes(r chi.Router, userHandler *UserHandler, authMiddelware *middleware.AuthMiddleware) {
 	r.Route("/users", func(r chi.Router) {
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddelware.RequireAuth)

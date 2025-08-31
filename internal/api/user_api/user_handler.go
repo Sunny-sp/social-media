@@ -1,10 +1,10 @@
-package handlers
+package user_api
 
 import (
 	"encoding/json"
 	"net/http"
+	"social/internal/api/user_api/userdto"
 	"social/internal/domain/user"
-	userdto "social/internal/domain/user/dtos"
 	"social/internal/pkg/utils"
 	"social/internal/pkg/validation"
 	"strconv"
@@ -64,6 +64,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	dto := &userdto.CreateUserDTO{}
+
 	if err := json.NewDecoder(r.Body).Decode(dto); err != nil {
 		utils.ResponseError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -74,9 +75,10 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newUser := dto.ToModel()
+	newUser := dto.ToDomain()
 
 	createdUser, err := h.userService.CreateNewUser(r.Context(), newUser)
+
 	if err != nil {
 		if strings.Contains(err.Error(), "email already exists") {
 			utils.ResponseError(w, http.StatusConflict, err.Error())
@@ -86,5 +88,6 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.ResponseJSON(w, http.StatusCreated, createdUser)
+	userResponse := userdto.ToUserResponse(createdUser)
+	utils.ResponseJSON(w, http.StatusCreated, userResponse)
 }

@@ -17,11 +17,11 @@ func NewAuthRepo(pool *pgxpool.Pool) auth.AuthRepository {
 	return &AuthRepo{pool: pool}
 }
 
-func (r *AuthRepo) GetTokenByUserID(ctx context.Context, userID int64) (*auth.AuthToken, error) {
+func (r *AuthRepo) GetTokenByUserID(ctx context.Context, userId int64) (*auth.AuthToken, error) {
 	token := &auth.AuthToken{}
 	err := r.pool.QueryRow(ctx,
 		`SELECT token_id, user_id, token, expires_at FROM auth_tokens WHERE user_id=$1`,
-		userID).Scan(&token.TokenID, &token.UserID, &token.Token, &token.ExpiresAt)
+		userId).Scan(&token.TokenId, &token.UserId, &token.Token, &token.ExpiresAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil // Not found

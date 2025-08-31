@@ -17,9 +17,9 @@ func NewUserRepo(pool *pgxpool.Pool) user.UserRepository {
 	return &UserRepo{pool: pool}
 }
 
-func (r *UserRepo) GetByUserId(ctx context.Context, userID int64) (*user.User, error) {
+func (r *UserRepo) GetByUserId(ctx context.Context, userId int64) (*user.User, error) {
 	u := &user.User{}
-	err := r.pool.QueryRow(ctx, `SELECT user_id, name, email, mobile FROM "user" WHERE user_id=$1`, userID).
+	err := r.pool.QueryRow(ctx, `SELECT user_id, name, email, mobile FROM "user" WHERE user_id=$1`, userId).
 		Scan(&u.UserId, &u.Name, &u.Email, &u.Mobile)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -30,9 +30,9 @@ func (r *UserRepo) GetByUserId(ctx context.Context, userID int64) (*user.User, e
 	return u, nil
 }
 
-func (r *UserRepo) GetUserPassByUserId(ctx context.Context, userID int64) (*user.DBUser, error) {
-	u := &user.DBUser{}
-	err := r.pool.QueryRow(ctx, `SELECT user_id, name, email, mobile, password FROM "user" WHERE user_id=$1`, userID).
+func (r *UserRepo) GetUserPassByUserId(ctx context.Context, userId int64) (*user.User, error) {
+	u := &user.User{}
+	err := r.pool.QueryRow(ctx, `SELECT user_id, name, email, mobile, password FROM "user" WHERE user_id=$1`, userId).
 		Scan(&u.UserId, &u.Name, &u.Email, &u.Mobile, &u.Password)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -64,7 +64,7 @@ func (r *UserRepo) GetAll(ctx context.Context) ([]*user.User, error) {
 	return users, nil
 }
 
-func (r *UserRepo) Create(ctx context.Context, u *user.DBUser) (*user.User, error) {
+func (r *UserRepo) Create(ctx context.Context, u *user.User) (*user.User, error) {
 	created := &user.User{}
 	err := r.pool.QueryRow(ctx,
 		`INSERT INTO "user" (name, email, mobile, password) VALUES ($1, $2, $3, $4) RETURNING user_id, name, email, mobile`,

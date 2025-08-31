@@ -1,10 +1,11 @@
-package handlers
+package auth_api
 
 import (
 	"encoding/json"
 	"net/http"
+	"social/internal/api/auth_api/authdto"
+	"social/internal/api/user_api/userdto"
 	"social/internal/domain/auth"
-	authdto "social/internal/domain/auth/dtos"
 	"social/internal/pkg/utils"
 	"social/internal/pkg/validation"
 )
@@ -31,11 +32,19 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, token, err := h.authService.ValidateUser(r.Context(), loginDto)
+	creds := &auth.LoginCredentials{
+		UserId:   loginDto.UserId,
+		Password: loginDto.Password,
+	}
+
+	user, token, err := h.authService.ValidateUser(r.Context(), creds)
+
 	if err != nil {
 		utils.ResponseError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	payload := userdto.ToUserResponse(user)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "auth_token",
@@ -47,5 +56,5 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   3600,
 	})
 
-	utils.ResponseJSON(w, http.StatusCreated, map[string]any{"message": "Logged In Successfully", "user": user})
+	utils.ResponseJSON(w, http.StatusCreated, map[string]any{"message": "Logged In Successfully", "user": payload})
 }

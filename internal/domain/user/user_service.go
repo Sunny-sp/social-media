@@ -33,10 +33,9 @@ func (u *UserService) GetAllUser(ctx context.Context) ([]*User, error) {
 	}
 	return users, nil
 }
-func (u *UserService) CreateNewUser(ctx context.Context, user *DBUser) (*User, error) {
-	existing, err := u.userRepo.GetByEmail(ctx, user.Email)
 
-	log.Println("existing", existing)
+func (u *UserService) CreateNewUser(ctx context.Context, dto *User) (*User, error) {
+	existing, err := u.userRepo.GetByEmail(ctx, dto.Email)
 
 	if err != nil {
 		log.Println("err", err)
@@ -46,12 +45,18 @@ func (u *UserService) CreateNewUser(ctx context.Context, user *DBUser) (*User, e
 	if existing != nil {
 		return nil, fmt.Errorf("email already exists")
 	}
+	user := &User{
+		Name:     dto.Name,
+		Email:    dto.Email,
+		Password: dto.Password,
+		Mobile:   dto.Mobile,
+	}
 
 	createdUser, err := u.userRepo.Create(ctx, user)
 
 	if err != nil {
 		return nil, err
-	}	
+	}
 
 	return createdUser, nil
 }
