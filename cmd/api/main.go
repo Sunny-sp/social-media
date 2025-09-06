@@ -11,6 +11,7 @@ import (
 	"social/internal/domain/auth"
 	"social/internal/domain/post"
 	"social/internal/domain/user"
+	"social/internal/infra/adapters"
 	"social/internal/infra/db"
 	"social/internal/infra/repository"
 )
@@ -31,8 +32,17 @@ func main() {
 	authRepo := repository.NewAuthRepo(pool)
 	postReo := repository.NewPostRepo(pool)
 
+	// provider
+	postProvider := adapters.NewPostProviderAdapter(postReo)
+
 	// Services
-	userSvc := user.NewUserService(userRepo)
+	// method 1 injecting Psot Interfcae Cause couple
+	// userSvc := user.NewUserService(userRepo, postReo)
+
+	// method 2 injecting Provider Interfcae no cross domain reference
+	// its an ACL(Anti Curreption Layer)
+	userSvc := user.NewUserService(userRepo, postProvider)
+
 	// testSecret := "testscret"
 	// log.Println("testSecret:", testSecret)
 

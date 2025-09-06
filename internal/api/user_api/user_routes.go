@@ -12,6 +12,8 @@ func UserRoutes(r chi.Router, userHandler *UserHandler, authMiddelware *middlewa
 			r.Use(authMiddelware.RequireAuth)
 			r.Get("/", userHandler.GetAllUser)
 			r.Get("/{id}", userHandler.GetByUserId)
+			r.Get("/me/posts", userHandler.getMyPosts)
+			r.Get("/{id}/posts", userHandler.getPostsByUserId)
 		})
 		r.Post("/", userHandler.Create)
 	})

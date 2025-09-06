@@ -4,15 +4,18 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"social/internal/domain/user/views"
 )
 
 type UserService struct {
-	userRepo UserRepository
+	userRepo     UserRepository
+	postProvider PostProvider
 }
 
-func NewUserService(userRepo UserRepository) *UserService {
+func NewUserService(userRepo UserRepository, postProvider PostProvider) *UserService {
 	return &UserService{
-		userRepo: userRepo,
+		userRepo:     userRepo,
+		postProvider: postProvider,
 	}
 }
 
@@ -23,6 +26,9 @@ func (u *UserService) GetUserByUserId(ctx context.Context, id int64) (*User, err
 		return nil, err
 	}
 
+	if user == nil {
+		return nil, fmt.Errorf("user not found")
+	}
 	return user, nil
 }
 
@@ -59,4 +65,20 @@ func (u *UserService) CreateNewUser(ctx context.Context, dto *User) (*User, erro
 	}
 
 	return createdUser, nil
+}
+
+func (u *UserService) GetPostsByUserId(ctx context.Context, UserId int64) ([]*views.PostView, error) {
+	//check if user exist otherwise error
+	user, err := u.GetUserByUserId(ctx, UserId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, ErrUserNotFound
+	}
+
+
+	return u.postProvider.GetPostsByUserId(ctx, UserId)
 }

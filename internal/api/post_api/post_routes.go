@@ -7,11 +7,12 @@ import (
 )
 
 func PostRoutes(r chi.Router, postHandler *PostHandler, authMiddleware *middleware.AuthMiddleware) {
-	r.Route("/post", func(r chi.Router) {
+	r.Route("/posts", func(r chi.Router) {
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddleware.RequireAuth)
 			r.Post("/", postHandler.AddPost)
 			r.Patch("/", postHandler.UpdatePost)
+			r.Get("/{id}", postHandler.getPostById)
 		})
 	})
 }

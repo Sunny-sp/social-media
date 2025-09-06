@@ -56,3 +56,13 @@ func (a *AuthMiddleware) RequireAuth(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+func MustGetClaims(w http.ResponseWriter, r *http.Request) *utils.Claims {
+	claims, ok := r.Context().Value(claimsKey).(*utils.Claims)
+	if !ok || claims == nil {
+		utils.ResponseError(w, http.StatusUnauthorized, "Missing or invalid auth claims")
+		return nil
+	}
+
+	return claims
+}

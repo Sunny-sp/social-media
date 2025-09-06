@@ -1,6 +1,10 @@
 package post
 
+import "context"
+
 type PostRepository interface {
-	AddNewPost()
+	AddNewPost(ctx context.Context, postData *Post) (*Post, error)
+	GetPostById(ctx context.Context, id int64) (*Post, error)
+	GetPostsByUserId(ctx context.Context, userId int64) ([]*Post, error)
 	UpdatePost()
 }
