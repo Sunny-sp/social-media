@@ -19,32 +19,29 @@ func NewPostRepo(pool *pgxpool.Pool) post.PostRepository {
 	}
 }
 
-func (p *PostRepo) AddNewPost(ctx context.Context, postData *post.Post) (*post.Post, error) {
+func (p *PostRepo) AddNewPost(ctx context.Context, postData *post.Post) error {
 
-	createdPost := &post.Post{}
-
-	query := `Insert Into "post" (user_id, title, description, tags) values ($1, $2, $3, $4 )
+	query := `Insert Into "post" (user_id, title, description, tags, media_urls) values ($1, $2, $3, $4, $5)
 			returning user_id, title, description, tags`
 
-	err := p.pool.QueryRow(ctx, query, postData.UserId, postData.Title, postData.Description, postData.Tags).
-		Scan(&createdPost.UserId, &createdPost.Title, &createdPost.Description, &createdPost.Tags)
+	_, err := p.pool.Exec(ctx, query, postData.UserId, postData.Title, postData.Description, postData.Tags, postData.MediaURLs)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
+			return nil
 		}
-		return nil, err
+		return err
 	}
 
-	return createdPost, nil
+	return nil
 
 }
 
 func (p *PostRepo) GetPostById(ctx context.Context, id int64) (*post.Post, error) {
 	post := &post.Post{}
 
-	query := `Select id, user_id, title, description, tags, created_at from post where id=$1`
-	err := p.pool.QueryRow(ctx, query, id).Scan(&post.Id, &post.UserId, &post.Title, &post.Description, &post.Tags, &post.CreatedAt)
+	query := `Select id, user_id, title, description, tags, media_urls, created_at from post where id=$1`
+	err := p.pool.QueryRow(ctx, query, id).Scan(&post.Id, &post.UserId, &post.Title, &post.Description, &post.Tags, &post.MediaURLs, &post.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -58,7 +55,7 @@ func (p *PostRepo) GetPostById(ctx context.Context, id int64) (*post.Post, error
 
 func (p *PostRepo) GetPostsByUserId(ctx context.Context, UserId int64) ([]*post.Post, error) {
 
-	query := `Select id, user_id, title, description, tags, created_at from post where user_id=$1`
+	query := `Select id, user_id, title, description, tags, media_urls, created_at from post where user_id=$1`
 
 	rows, err := p.pool.Query(ctx, query, UserId)
 
@@ -72,7 +69,7 @@ func (p *PostRepo) GetPostsByUserId(ctx context.Context, UserId int64) ([]*post.
 	for rows.Next() {
 		post := &post.Post{}
 
-		err := rows.Scan(&post.Id, &post.UserId, &post.Title, &post.Description, &post.Tags, &post.CreatedAt)
+		err := rows.Scan(&post.Id, &post.UserId, &post.Title, &post.Description, &post.Tags, &post.MediaURLs, &post.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -87,8 +84,4 @@ func (p *PostRepo) GetPostsByUserId(ctx context.Context, UserId int64) ([]*post.
 	}
 
 	return posts, err
-}
-
-func (p *PostRepo) UpdatePost() {
-
 }

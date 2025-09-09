@@ -15,14 +15,14 @@ func NewPostService(postRepo PostRepository) *PostService {
 	}
 }
 
-func (p *PostService) AddPost(ctx context.Context, post *Post) (*Post, error) {
-	createdPost, err := p.postRepo.AddNewPost(ctx, post)
+func (p *PostService) AddPost(ctx context.Context, post *Post) error {
+	err := p.postRepo.AddNewPost(ctx, post)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return createdPost, nil
+	return nil
 }
 
 func (p *PostService) GetPostById(ctx context.Context, id int64) (*Post, error) {
@@ -38,4 +38,3 @@ func (p *PostService) GetPostById(ctx context.Context, id int64) (*Post, error) 
 
 	return post, nil
 }
-

@@ -1,0 +1,2 @@
+ALTER TABLE "post"
+DROP COLUMN IF EXISTS media_urls;

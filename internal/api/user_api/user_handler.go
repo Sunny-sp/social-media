@@ -106,7 +106,9 @@ func (p *UserHandler) getMyPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.ResponseJSON(w, http.StatusOK, posts)
+	responses := userdto.ToUserPostsResponse(posts)
+
+	utils.ResponseJSON(w, http.StatusOK, responses)
 }
 
 func (p *UserHandler) getPostsByUserId(w http.ResponseWriter, r *http.Request) {
@@ -129,5 +131,7 @@ func (p *UserHandler) getPostsByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.ResponseJSON(w, http.StatusOK, posts)
+	responses := userdto.ToUserPostsResponse(posts)
+
+	utils.ResponseJSON(w, http.StatusOK, responses)
 }

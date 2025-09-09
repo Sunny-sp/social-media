@@ -26,12 +26,23 @@ func (p *PostProviderAdapter) GetPostsByUserId(ctx context.Context, UserId int64
 	postViews := make([]*views.PostView, len(posts))
 
 	for i, p := range posts {
+
+		mediaViews := make([]views.Media, len(p.MediaURLs))
+
+		for i, m := range p.MediaURLs {
+			mediaViews[i] = views.Media{
+				Type: m.Type,
+				Path: m.Path,
+			}
+		}
+
 		postViews[i] = &views.PostView{
 			Id:          p.Id,
 			UserId:      p.UserId,
 			Title:       p.Title,
 			Description: p.Description,
 			Tags:        p.Tags,
+			MediaURLs:   mediaViews,
 			CreatedAt:   p.CreatedAt,
 		}
 	}

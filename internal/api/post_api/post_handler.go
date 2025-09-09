@@ -36,6 +36,10 @@ func (p *PostHandler) AddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	claims := middleware.MustGetClaims(w, r)
+	log.Println("\nclaims.UserID", claims.UserID)
+	postDto.UserId = claims.UserID
+
 	// validate body with dto
 	errs := validation.ValidateDTO(postDto)
 
@@ -44,21 +48,17 @@ func (p *PostHandler) AddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims := middleware.MustGetClaims(w, r)
-	log.Println("\nclaims.UserID", claims.UserID)
-
 	// convert into PostDomain data with userId
 	newPost := postDto.ToDomain()
 
-	newPost.UserId = claims.UserID
 	log.Println("new posts userId:", newPost.UserId)
 
 	log.Printf("new posts: %+v", newPost)
 	// service call to addpost
-	post, err := p.postService.AddPost(r.Context(), newPost)
+	err = p.postService.AddPost(r.Context(), newPost)
 
 	// response validate
-	if post == nil || err != nil {
+	if err != nil {
 		utils.ResponseError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -91,8 +91,4 @@ func (p *PostHandler) getPostById(w http.ResponseWriter, r *http.Request) {
 	payload := postdto.ToPostResponse(post)
 
 	utils.ResponseJSON(w, http.StatusOK, payload)
-}
-
-func (p *PostHandler) UpdatePost(w http.ResponseWriter, r *http.Request) {
-
 }

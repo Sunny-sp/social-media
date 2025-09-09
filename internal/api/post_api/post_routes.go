@@ -11,7 +11,6 @@ func PostRoutes(r chi.Router, postHandler *PostHandler, authMiddleware *middlewa
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddleware.RequireAuth)
 			r.Post("/", postHandler.AddPost)
-			r.Patch("/", postHandler.UpdatePost)
 			r.Get("/{id}", postHandler.getPostById)
 		})
 	})
