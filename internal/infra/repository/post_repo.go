@@ -3,8 +3,10 @@ package repository
 import (
 	"context"
 	"errors"
+	"log"
 	"social/internal/domain/post"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -53,15 +55,61 @@ func (p *PostRepo) GetPostById(ctx context.Context, id int64) (*post.Post, error
 	return post, err
 }
 
-func (p *PostRepo) GetPostsByUserId(ctx context.Context, UserId int64) ([]*post.Post, error) {
+func (p *PostRepo) GetPostsByUserId(ctx context.Context, UserId int64, filter post.PostByUserIdFilter) ([]*post.Post, error) {
+	qb := squirrel.Select("id", "user_id", "title", "description", "tags", "media_urls", "created_at").
+		From("post").
+		Where(squirrel.Eq{"user_id": UserId}).
+		PlaceholderFormat(squirrel.Dollar)
 
-	query := `Select id, user_id, title, description, tags, media_urls, created_at from post where user_id=$1`
+	// Title filter
+	if filter.Filters.Title != "" {
+		qb = qb.Where(squirrel.ILike{"title": "%" + filter.Filters.Title + "%"})
+	}
 
-	rows, err := p.pool.Query(ctx, query, UserId)
+	// Desc filter
+	if filter.Filters.Desc != "" {
+		qb = qb.Where(squirrel.ILike{"description": "%" + filter.Filters.Desc + "%"})
+	}
+
+	// Search across title OR desc
+	if filter.Search != "" {
+		qb = qb.Where(squirrel.Or{
+			squirrel.ILike{"title": "%" + filter.Search + "%"},
+			squirrel.ILike{"description": "%" + filter.Search + "%"},
+		})
+	}
+
+	// Tags filter
+	if len(filter.Filters.Tags) > 0 {
+		qb = qb.Where("tags @> ?", filter.Filters.Tags)
+	}
+
+	// Sorting
+	qb = qb.OrderBy("created_at " + filter.Sort)
+
+	// Pagination
+	if filter.Limit <= 0 {
+		filter.Limit = 10 // Default limit
+	}
+
+	if filter.Page < 1 {
+		filter.Page = 1 // Default page
+	}
+
+	qb = qb.Limit(uint64(filter.Limit)).Offset(uint64((filter.Page - 1) * filter.Limit))
+
+	// Build the query
+	query, args, err := qb.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := p.pool.Query(ctx, query, args...)
 
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	var posts []*post.Post

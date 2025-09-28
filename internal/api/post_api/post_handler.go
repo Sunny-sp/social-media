@@ -10,6 +10,7 @@ import (
 	"social/internal/pkg/utils"
 	"social/internal/pkg/validation"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -67,7 +68,7 @@ func (p *PostHandler) AddPost(w http.ResponseWriter, r *http.Request) {
 	utils.ResponseJSON(w, http.StatusCreated, "Post created Successfully")
 }
 
-func (p *PostHandler) getPostById(w http.ResponseWriter, r *http.Request) {
+func (p *PostHandler) GetPostById(w http.ResponseWriter, r *http.Request) {
 	idstr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idstr, 10, 64)
 
@@ -91,4 +92,39 @@ func (p *PostHandler) getPostById(w http.ResponseWriter, r *http.Request) {
 	payload := postdto.ToPostResponse(post)
 
 	utils.ResponseJSON(w, http.StatusOK, payload)
+}
+
+func (p *PostHandler) GeneratePresignedUploadUrl(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	//body
+	dto := &postdto.PresignedUploadRequest{}
+	err := json.NewDecoder(r.Body).Decode(dto)
+	if err != nil {
+		utils.ResponseError(w, http.StatusBadRequest)
+		return
+	}
+
+	// validate body with dto
+	errs := validation.ValidateDTO(dto)
+
+	if errs != nil {
+		utils.ResponseError(w, http.StatusBadRequest, map[string]any{"erros": errs})
+		return
+	}
+
+	// userid
+	claims := middleware.MustGetClaims(w, r)
+
+	// generate
+	expires := 60 * time.Minute
+	PostPresignedResult, err := p.postService.GeneratePostSignedURL(r.Context(), dto.OriginalFilename, claims.UserID, expires)
+
+	if err != nil {
+		utils.ResponseError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// return
+	utils.ResponseJSON(w, http.StatusCreated, PostPresignedResult)
 }

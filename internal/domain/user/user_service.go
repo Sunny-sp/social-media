@@ -67,7 +67,7 @@ func (u *UserService) CreateNewUser(ctx context.Context, dto *User) (*User, erro
 	return createdUser, nil
 }
 
-func (u *UserService) GetPostsByUserId(ctx context.Context, UserId int64) ([]*views.PostView, error) {
+func (u *UserService) GetPostsByUserId(ctx context.Context, UserId int64, filter PostFilter) ([]*views.PostView, error) {
 	//check if user exist otherwise error
 	user, err := u.GetUserByUserId(ctx, UserId)
 
@@ -79,6 +79,5 @@ func (u *UserService) GetPostsByUserId(ctx context.Context, UserId int64) ([]*vi
 		return nil, ErrUserNotFound
 	}
 
-
-	return u.postProvider.GetPostsByUserId(ctx, UserId)
+	return u.postProvider.GetPostsByUserId(ctx, UserId, filter)
 }

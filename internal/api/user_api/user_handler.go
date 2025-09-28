@@ -96,10 +96,35 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 /////////////////////////////////posts////////////////////////////////////////
 
-func (p *UserHandler) getMyPosts(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) getMyPosts(w http.ResponseWriter, r *http.Request) {
+	dto := &userdto.GetPostsByUserIdQueryDto{}
+
+	errs := validation.ValidateQueryDTO(r, dto)
+
+	if errs != nil {
+		utils.ResponseError(w, http.StatusBadRequest, map[string]any{"errors": errs})
+		return
+	}
+
 	claims := middleware.MustGetClaims(w, r)
 
-	posts, err := p.userService.GetPostsByUserId(r.Context(), claims.UserID)
+	filter := user.PostFilter{
+		Page:   int64(dto.Page),
+		Limit:  int64(dto.Limit),
+		Search: dto.Search,
+		Sort:   dto.Sort,
+		Filters: struct {
+			Title string
+			Desc  string
+			Tags  string
+		}{
+			Title: dto.Filters.Title,
+			Desc:  dto.Filters.Desc,
+			Tags:  dto.Filters.Tags,
+		},
+	}
+
+	posts, err := h.userService.GetPostsByUserId(r.Context(), claims.UserID, filter)
 
 	if err != nil {
 		utils.ResponseError(w, http.StatusInternalServerError, err.Error())
@@ -111,7 +136,7 @@ func (p *UserHandler) getMyPosts(w http.ResponseWriter, r *http.Request) {
 	utils.ResponseJSON(w, http.StatusOK, responses)
 }
 
-func (p *UserHandler) getPostsByUserId(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) getPostsByUserId(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	userId, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -119,7 +144,32 @@ func (p *UserHandler) getPostsByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, err := p.userService.GetPostsByUserId(r.Context(), userId)
+	dto := &userdto.GetPostsByUserIdQueryDto{}
+
+	errs := validation.ValidateQueryDTO(r, dto)
+
+	if errs != nil {
+		utils.ResponseError(w, http.StatusBadRequest, map[string]any{"errors": errs})
+		return
+	}
+
+	filter := user.PostFilter{
+		Page:   int64(dto.Page),
+		Limit:  int64(dto.Limit),
+		Search: dto.Search,
+		Sort:   dto.Sort,
+		Filters: struct {
+			Title string
+			Desc  string
+			Tags  string
+		}{
+			Title: dto.Filters.Title,
+			Desc:  dto.Filters.Desc,
+			Tags:  dto.Filters.Tags,
+		},
+	}
+
+	posts, err := h.userService.GetPostsByUserId(r.Context(), userId, filter)
 
 	if err != nil {
 		if errors.Is(err, user.ErrUserNotFound) {

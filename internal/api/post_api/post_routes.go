@@ -11,7 +11,8 @@ func PostRoutes(r chi.Router, postHandler *PostHandler, authMiddleware *middlewa
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddleware.RequireAuth)
 			r.Post("/", postHandler.AddPost)
-			r.Get("/{id}", postHandler.getPostById)
+			r.Get("/{id}", postHandler.GetPostById)
+			r.Post("/upload-url", postHandler.GeneratePresignedUploadUrl)
 		})
 	})
 }

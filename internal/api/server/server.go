@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"social/internal/api/auth_api"
 	mw "social/internal/api/middleware"
@@ -54,9 +55,21 @@ func (s *Server) Mount() http.Handler {
 	return r
 }
 
+func PrintRoutes(r chi.Router) {
+	chi.Walk(r, func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
+		fmt.Printf("📌 %s %s\n", method, route)
+		return nil
+	})
+}
+
 func (s *Server) Run(mux http.Handler) error {
+	addr := s.config.Addr()
+
+	fmt.Printf("🚀 Server is starting at port%s\n", addr)
+	// PrintRoutes(mux.(chi.Router))
+
 	srv := &http.Server{
-		Addr:         s.config.Addr(),
+		Addr:         addr,
 		Handler:      mux,
 		WriteTimeout: 30 * time.Second,
 		ReadTimeout:  10 * time.Second,
