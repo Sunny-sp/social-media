@@ -3,7 +3,9 @@ package adapters
 import (
 	"context"
 	"social/internal/domain/post"
+	"social/internal/domain/user"
 	"social/internal/domain/user/views"
+	"strings"
 )
 
 type PostProviderAdapter struct {
@@ -16,8 +18,28 @@ func NewPostProviderAdapter(postRepo post.PostRepository) *PostProviderAdapter {
 	}
 }
 
-func (p *PostProviderAdapter) GetPostsByUserId(ctx context.Context, UserId int64) ([]*views.PostView, error) {
-	posts, err := p.postRepo.GetPostsByUserId(ctx, UserId)
+func (p *PostProviderAdapter) GetPostsByUserId(ctx context.Context, UserId int64, f user.PostFilter) ([]*views.PostView, error) {
+	// convert string tags into []string
+	var tags []string
+	if f.Filters.Tags != "" {
+		tags = strings.Split(strings.TrimSpace(f.Filters.Tags), ",")
+		for i, tag := range tags {
+			tags[i] = strings.TrimSpace(tag)
+		}
+	}
+	query := post.PostByUserIdFilter{
+		Page:   f.Page,
+		Limit:  f.Limit,
+		Search: f.Search,
+		Sort:   f.Sort,
+		Filters: post.PostFilters{
+			Title: f.Filters.Title,
+			Tags:  tags,
+			Desc:  f.Filters.Desc,
+		},
+	}
+
+	posts, err := p.postRepo.GetPostsByUserId(ctx, UserId, query)
 
 	if err != nil {
 		return nil, err

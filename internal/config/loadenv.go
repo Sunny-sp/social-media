@@ -37,10 +37,11 @@ func (db DBConfig) ConnString() string {
 
 // AWSConfig holds AWS credentials/settings
 type AWSConfig struct {
-	AccessKey string
-	SecretKey string
-	Region    string
-	Bucket    string
+	AccessKey    string
+	SecretKey    string
+	Region       string
+	Bucket       string
+	SessionToken string
 }
 
 // JWTConfig holds JWT authentication settings
@@ -73,10 +74,11 @@ func Loadenv() config {
 			Name:     getEnvString("DB_NAME", "socialdb"),
 		},
 		AWS: AWSConfig{
-			AccessKey: getEnvString("AWS_ACCESS_KEY", ""),
-			SecretKey: getEnvString("AWS_SECRET_KEY", ""),
-			Region:    getEnvString("AWS_REGION", "us-east-1"),
-			Bucket:    getEnvString("AWS_BUCKET", "my-bucket"),
+			AccessKey:    getEnvString("AWS_ACCESS_KEY_ID", ""),
+			SecretKey:    getEnvString("AWS_SECRET_ACCESS_KEY", ""),
+			SessionToken: getEnvString("AWS_SESSION_TOKEN", ""),
+			Region:       getEnvString("AWS_REGION", "us-east-1"),
+			Bucket:       getEnvString("AWS_BUCKET", "my-bucket"),
 		},
 		JWT: JWTConfig{
 			Secret:     getEnvString("JWT_SECRET", "secert23&^**&YHIi&T&Ghbkaknasdsft"),
