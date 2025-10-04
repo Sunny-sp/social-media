@@ -2,6 +2,7 @@ package auth_api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"social/internal/api/auth_api/authdto"
 	"social/internal/api/user_api/userdto"
@@ -38,7 +39,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, token, err := h.authService.ValidateUser(r.Context(), creds)
-
+	log.Printf(":::user::: %+v", user)
 	if err != nil {
 		utils.ResponseError(w, http.StatusBadRequest, err.Error())
 		return

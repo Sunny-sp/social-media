@@ -23,7 +23,7 @@ func NewUserHandler(s *user.UserService) *UserHandler {
 	return &UserHandler{userService: s}
 }
 
-func (h *UserHandler) GetByUserId(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) GetProfileByUserId(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -31,7 +31,7 @@ func (h *UserHandler) GetByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.GetUserByUserId(r.Context(), id)
+	userProfile, err := h.userService.GetProfileByUserId(r.Context(), id)
 
 	if err != nil {
 		if err.Error() == "user not found" {
@@ -43,7 +43,27 @@ func (h *UserHandler) GetByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userResponse := userdto.ToUserResponse(user)
+	userResponse := userdto.ToProfileResponse(userProfile)
+	utils.ResponseJSON(w, http.StatusOK, userResponse)
+}
+
+func (h *UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
+
+	claims := middleware.MustGetClaims(w, r)
+
+	useProfile, err := h.userService.GetProfileByUserId(r.Context(), claims.UserID)
+
+	if err != nil {
+		if err.Error() == "user not found" {
+			utils.ResponseError(w, http.StatusNotFound, err.Error())
+		} else {
+			utils.ResponseError(w, http.StatusInternalServerError, err.Error())
+		}
+
+		return
+	}
+
+	userResponse := userdto.ToProfileResponse(useProfile)
 	utils.ResponseJSON(w, http.StatusOK, userResponse)
 }
 
@@ -92,6 +112,33 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	userResponse := userdto.ToUserResponse(createdUser)
 	utils.ResponseJSON(w, http.StatusCreated, userResponse)
+}
+
+func (h *UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	// dto with all fileds optional since its patch
+	updateProfileDto := &userdto.UpdateProfileDTO{}
+	// validate
+	err := json.NewDecoder(r.Body).Decode(updateProfileDto)
+
+	if err != nil {
+		utils.ResponseError(w, http.StatusBadRequest, "Invalid Request Body")
+	}
+
+	claims := middleware.MustGetClaims(w, r)
+
+	// toProfileDomain
+	profileDomain := updateProfileDto.ToDomain()
+
+	err = h.userService.UpdateProfileByUserId(r.Context(), claims.UserID, profileDomain)
+
+	if err != nil {
+		utils.ResponseError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.ResponseJSON(w, http.StatusOK, "Profile Updated Successfully")
 }
 
 /////////////////////////////////posts////////////////////////////////////////

@@ -19,17 +19,27 @@ func NewUserService(userRepo UserRepository, postProvider PostProvider) *UserSer
 	}
 }
 
-func (u *UserService) GetUserByUserId(ctx context.Context, id int64) (*User, error) {
-	user, err := u.userRepo.GetByUserId(ctx, id)
+func (u *UserService) GetProfileByUserId(ctx context.Context, id int64) (*Profile, error) {
+	Profile, err := u.userRepo.GetProfileByUserId(ctx, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if user == nil {
+	if Profile == nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	return user, nil
+	return Profile, nil
+}
+
+func (u *UserService) UpdateProfileByUserId(ctx context.Context, id int64, p *Profile) error {
+	err := u.userRepo.UpdateProfileByUserId(ctx, id, p)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u *UserService) GetAllUser(ctx context.Context) ([]*User, error) {
@@ -69,8 +79,8 @@ func (u *UserService) CreateNewUser(ctx context.Context, dto *User) (*User, erro
 
 func (u *UserService) GetPostsByUserId(ctx context.Context, UserId int64, filter PostFilter) ([]*views.PostView, error) {
 	//check if user exist otherwise error
-	user, err := u.GetUserByUserId(ctx, UserId)
-
+	user, err := u.userRepo.GetUserByUserId(ctx, UserId)
+	log.Println("err:::|||:::", err)
 	if err != nil {
 		return nil, err
 	}

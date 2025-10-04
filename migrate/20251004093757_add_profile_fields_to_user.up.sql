@@ -1,0 +1,3 @@
+ALTER TABLE "user"
+ADD COLUMN profile_pic TEXT,
+ADD COLUMN bio TEXT;

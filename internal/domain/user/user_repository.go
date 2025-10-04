@@ -5,7 +5,9 @@ import (
 )
 
 type UserRepository interface {
-	GetByUserId(ctx context.Context, userId int64) (*User, error)
+	GetProfileByUserId(ctx context.Context, userId int64) (*Profile, error)
+	UpdateProfileByUserId(ctx context.Context, userId int64, p *Profile) error
+	GetUserByUserId(ctx context.Context, userId int64) (*User, error)
 	GetUserPassByUserId(ctx context.Context, userId int64) (*User, error)
 	GetAll(ctx context.Context) ([]*User, error)
 	Create(ctx context.Context, user *User) (*User, error)
