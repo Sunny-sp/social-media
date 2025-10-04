@@ -1,0 +1,9 @@
+# migration
+1) Add new migration
+migrate create -ext sql -dir ./migrate add_profile_fields_to_user
+
+2) Run migration
+
+a) export DATABASE_URL="postgres://postgres:admin@127.0.0.1:5432/socialdb?sslmode=disable"
+b) echo $DATABASE_URL
+c) migrate -path ./migrate -database "$DATABASE_URL" up

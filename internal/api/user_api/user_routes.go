@@ -11,9 +11,11 @@ func UserRoutes(r chi.Router, userHandler *UserHandler, authMiddelware *middlewa
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddelware.RequireAuth)
 			r.Get("/", userHandler.GetAllUser)
-			r.Get("/{id}", userHandler.GetByUserId)
 			r.Get("/me/posts", userHandler.getMyPosts)
 			r.Get("/{id}/posts", userHandler.getPostsByUserId)
+			r.Get("/me/profile", userHandler.GetMyProfile)
+			r.Get("/{id}/profile", userHandler.GetProfileByUserId)
+			r.Patch("/me/profile", userHandler.UpdateMyProfile)
 		})
 		r.Post("/", userHandler.Create)
 	})

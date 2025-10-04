@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"log"
 	"social/internal/domain/post"
 
 	"github.com/Masterminds/squirrel"
